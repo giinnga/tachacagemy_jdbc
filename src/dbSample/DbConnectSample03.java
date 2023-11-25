@@ -5,16 +5,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class DbConnectSample03 {
 
     public static void main(String[] args) {
         // データベース接続と結果取得のための変数
         Connection con = null;
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         // 1. ドライバのクラスをJava上で読み込む
@@ -27,16 +27,18 @@ public class DbConnectSample03 {
               "root",
               "rootroot"
               );
+        String sql = "select * from country where Name = ?";
 
         // 3. DBとやりとりする窓口（Statementオブジェクト）の作成
-        stmt = con.createStatement();
+        pstmt = con.prepareStatement(sql);
 
         // 4, 5. Select文の実行と結果を格納／代入
         System.out.print("検索キーワードを入力してください > ");
         String input = keyIn();
 
-        String sql = "select * from country where Name = '" + input + "'";
-        rs = stmt.executeQuery(sql);
+        pstmt.setString(1, input);
+
+        rs = pstmt.executeQuery();
 
         // 6. 結果を表示する
         while(rs.next()) {
@@ -65,9 +67,9 @@ public class DbConnectSample03 {
                     e.printStackTrace();
                 }
              }
-            if(stmt != null) {
+            if(pstmt != null) {
                try {
-                   stmt.close();
+                   pstmt.close();
                } catch (SQLException e){
                    System.err.println("Statementを閉じるときにエラーが発生しました");
                    e.printStackTrace();
