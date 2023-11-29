@@ -5,50 +5,49 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DbConnectSample03 {
 
     public static void main(String[] args) {
         // データベース接続と結果取得のための変数
         Connection con = null;
-        PreparedStatement pstmt = null;
+        Statement stmt = null;
         ResultSet rs = null;
 
-        // 1. ドライバのクラスをJava上で読み込む
         try {
+            // 1. ドライバのクラスをJava上で読み込む
             Class.forName("com.mysql.jdbc.Driver");
 
-        // 2. DBと接続する
-        con = DriverManager.getConnection(
-              "jdbc:mysql://localhost/world?useSSL=false",
-              "root",
-              "rootroot"
-              );
-        String sql = "select * from country where Name = ?";
+            // 2. DBと接続する
+            con = DriverManager.getConnection(
+                "jdbc:mysql://localhost/world?useSSL=false",
+                "root",
+                "rootroot"
+            );
 
-        // 3. DBとやりとりする窓口（Statementオブジェクト）の作成
-        pstmt = con.prepareStatement(sql);
+            // 3. DBとやりとりする窓口（Statementオブジェクト）の作成
+            stmt = con.createStatement();
 
-        // 4, 5. Select文の実行と結果を格納／代入
-        System.out.print("検索キーワードを入力してください > ");
-        String input = keyIn();
+            // 4, 5. Select文の実行と結果を格納／代入
+            System.out.print("検索キーワードを入力してください > ");
+            String input = keyIn();
 
-        pstmt.setString(1, input);
+            String sql = "select * from country where Name = '" + input + "'";
+            rs = stmt.executeQuery(sql);
 
-        rs = pstmt.executeQuery();
+            // 6. 結果を表示する
+            while( rs.next() ){
+                // Name列の値を取得
+                String name = rs.getString("Name");
+                // Population列の値を取得
+                int population = rs.getInt("Population");
 
-        // 6. 結果を表示する
-        while(rs.next()) {
-           // Name列の値を取得
-            String name = rs.getString("Name");
-           // Population列の値を取得
-            int population = rs.getInt("Population");
-           // 取得した値を表示
-            System.out.println(name);
-            System.out.println(population);
+                // 取得した値を表示
+                System.out.println(name);
+                System.out.println(population);
             }
 
         } catch (ClassNotFoundException e) {
@@ -58,34 +57,35 @@ public class DbConnectSample03 {
             System.err.println("データベースに異常が発生しました。");
             e.printStackTrace();
         } finally {
-         // 7. 接続を閉じる
-            if( rs != null) {
+            // 7. 接続を閉じる
+            if( rs != null ){
                 try {
                     rs.close();
-                } catch (SQLException e){
-                    System.err.println("ResultSetを閉じるときにエラーが発生しました");
+                } catch (SQLException e) {
+                    System.err.println("ResultSetを閉じるときにエラーが発生しました。");
                     e.printStackTrace();
                 }
-             }
-            if(pstmt != null) {
-               try {
-                   pstmt.close();
-               } catch (SQLException e){
-                   System.err.println("Statementを閉じるときにエラーが発生しました");
-                   e.printStackTrace();
-               }
             }
-            if(con != null) {
+            if( stmt != null ){
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    System.err.println("Statementを閉じるときにエラーが発生しました。");
+                    e.printStackTrace();
+                }
+            }
+            if( con != null ){
                 try {
                     con.close();
-                } catch (SQLException e){
-                    System.err.println("データベース切断時にエラーが発生しました");
+                } catch (SQLException e) {
+                    System.err.println("データベース切断時にエラーが発生しました。");
                     e.printStackTrace();
                 }
-             }
+            }
+        }
 
-       }
     }
+
     /*
      * キーボードから入力された値をStringで返す
      *         引数：なし
@@ -102,4 +102,5 @@ public class DbConnectSample03 {
         }
         return line;
     }
+
 }
